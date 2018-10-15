@@ -1,10 +1,12 @@
 <?php
 
-if ($_POST["data"]) {
+header('Content-Type: application/json; charset=utf-8');
+
+if (isset($_POST["data"])) {
     $response = json_decode($_POST["data"]);
 }
 
-$file = "./data/data.php";
+$file = "./data/data.json";
 $content = file_get_contents($file);
 $content = json_decode($content);
 
@@ -14,5 +16,4 @@ file_put_contents($file, "");
 
 file_put_contents($file, $res);
 
-header('Content-Type: application/json; charset=utf-8');
 echo $res;

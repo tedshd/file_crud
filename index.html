@@ -11,35 +11,45 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/pure-min.css">
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="./lib/ajax_min.js"></script>
+<style>
+    textarea {
+        height: 7em;
+    }
+</style>
 </head>
 <body>
-
+<form id="form" class="pure-form pure-form-stacked">
+    <fieldset v-for="items in data"></fieldset>
+    <!-- <button type="submit" class="pure-button pure-button-primary">Update</button> -->
+</form>
 </body>
 <script>
 
 function read(argument) {
-    ajax({
-        method: 'GET',
-        url: './api.php',
-        data: {
-        },
-        response: 'json',
-        success: function (data) {
-            console.log(data);
-            return {
-                'status': 200,
-                'data': data,
-            };
-        },
-        error: function(status, data) {
-            return {
-                'status': status,
-                'data': data,
-            };
-        }
+    return new Promise(function (resolve) {
+        ajax({
+            method: 'GET',
+            url: './api.php',
+            data: {
+            },
+            response: 'json',
+            success: function (data) {
+                // console.log(data);
+                resolve({
+                    'status': 200,
+                    'data': data,
+                });
+            },
+            error: function(status, data) {
+                resolve({
+                    'status': status,
+                    'data': data,
+                });
+            }
+        });
     });
-}
 
+}
 
 function write(argument) {
     ajax({
@@ -49,7 +59,7 @@ function write(argument) {
         },
         response: 'json',
         success: function (data) {
-            console.log(data);
+            // console.log(data);
             return {
                 'status': 200,
                 'data': data,
@@ -64,7 +74,44 @@ function write(argument) {
     });
 }
 
-console.log(read());
+async function init() {
+    let res = await read();
+    return res;
+}
+
+init().then(function (argument) {
+    initTemplate(argument.data);
+    let vDom = new Vue({
+        el: '#form',
+        data: {
+            data: reBuild(argument.data)
+        }
+    })
+});
+
+function initTemplate(argument) {
+    let template = ``;
+    for (let x in argument[0]) {
+        template += `<textarea class="pure-input-1" placeholder="` + x + `" v-bind:value="items.` + x + `"></textarea>`;
+    }
+    template += `<hr>`;
+    document.querySelector('#form fieldset').innerHTML = template;
+}
+
+function reBuild(argument) {
+    for (let i = 0; i < argument.length; i++) {
+        for (let x in argument[i]) {
+            if (Array.isArray(argument[i][x])) {
+                let tmp = '';
+                for (let j = 0; j < argument[i][x].length; j++) {
+                    tmp += argument[i][x][j] + '\n';
+                }
+                argument[i][x] = tmp;
+            }
+        }
+    }
+    return argument;
+}
 
 </script>
 </html>
